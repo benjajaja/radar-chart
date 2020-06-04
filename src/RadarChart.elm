@@ -1,19 +1,19 @@
 module RadarChart exposing
-    ( view, defaultOptions, DatumSeries
-    , Options, AxisStyle(..), LineStyle(..)
+    ( Options, AxisStyle(..), LineStyle(..), defaultOptions
+    , view, DatumSeries
     )
 
 {-|
 
 
-# Show a default chart
+# Customize a chart a little bit, or use defaults
 
-@docs view, defaultOptions, DatumSeries
+@docs Options, AxisStyle, LineStyle, defaultOptions
 
 
-# Customize a chart a little bit
+# Show a radar chart
 
-@docs Options, AxisStyle, LineStyle
+@docs view, DatumSeries
 
 -}
 
