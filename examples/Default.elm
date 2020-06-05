@@ -16,7 +16,8 @@ main =
             [ { color = "#333333", data = List.take 6 someData } ]
         , Html.div [] [ Html.text "Minimal axis, filled area:" ]
         , RadarChart.view
-            { fontSize = 2.0
+            { maximum = RadarChart.FixedMax 500
+            , fontSize = 2.0
             , margin = 0.333
             , strokeWidth = 1
             , axisColor = "lightgrey"

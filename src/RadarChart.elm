@@ -1,6 +1,6 @@
 module RadarChart exposing
-    ( Options, AxisStyle(..), LineStyle(..), defaultOptions
-    , view, DatumSeries
+    ( Options, AxisStyle(..), LineStyle(..), DatumSeries, Maximum(..)
+    , view, defaultOptions
     )
 
 {-|
@@ -8,12 +8,12 @@ module RadarChart exposing
 
 # Customize a chart a little bit, or use defaults
 
-@docs Options, AxisStyle, LineStyle, defaultOptions
+@docs Options, AxisStyle, LineStyle, DatumSeries, Maximum
 
 
 # Show a radar chart
 
-@docs view, DatumSeries
+@docs view, defaultOptions
 
 -}
 
@@ -42,7 +42,13 @@ view options labels series =
                                 axisCount
                                 color
                                 data
-                                (Maybe.withDefault 1 <| List.maximum <| data)
+                                (case options.maximum of
+                                    FixedMax n ->
+                                        n
+
+                                    Infer ->
+                                        Maybe.withDefault 1 <| List.maximum data
+                                )
                                 []
                         )
                         series
@@ -58,7 +64,7 @@ type alias DatumSeries =
     }
 
 
-{-| Chart styling options:
+{-| Chart options:
 
   - `fontSize` See <https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/font-size>
   - `margin` Between 0 and 1, to leave some space for labels
@@ -69,7 +75,8 @@ type alias DatumSeries =
 
 -}
 type alias Options =
-    { fontSize : Float
+    { maximum : Maximum
+    , fontSize : Float
     , margin : Float
     , strokeWidth : Float
     , axisColor : String
@@ -96,11 +103,19 @@ type LineStyle
     | Filled Float
 
 
+{-| Fixed axis maximum or use highest data point of series
+-}
+type Maximum
+    = FixedMax Float
+    | Infer
+
+
 {-| Get a default options object.
 -}
 defaultOptions : Options
 defaultOptions =
-    { fontSize = 3.0
+    { maximum = Infer
+    , fontSize = 3.0
     , margin = 0.333
     , strokeWidth = 0.5
     , axisColor = "darkgrey"
