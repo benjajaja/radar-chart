@@ -33,7 +33,7 @@ import RadarChart
 ```elm
 RadarChart.view
   RadarChart.defaultOptions
-  [ "Values", "Variables", "Conditionals", "Loops", "Functions", "Programs" ]
+  (RadarChart.simpleLabels [ "Values", "Variables", "Conditionals", "Loops", "Functions", "Programs" ])
   [ { color = "yellow", data = [ 120, 500, 310, 130, 300, 180 ] } ]
 ```
 
