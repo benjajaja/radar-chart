@@ -2,11 +2,17 @@
 
 A small library to display just one type of charts: radar charts, also known as web chart, spider chart, spider web chart, star chart, star plot, cobweb chart, irregular polygon, polar chart, or Kiviat diagram.
 
+These kind of charts are often not particularly useful, or can even be misleading
+as they may "connect" unrelated data.
+
+However, they look cool. They can be useful for example to convey a pattern
+immediately, if the user has already interiorized many samples.
+
 Sample output:  
 ![Sample output](https://github.com/gipsy-king/radar-chart/blob/master/sample_output.svg?raw=true)
 
 Ellie demo playground:  
-https://ellie-app.com/93J93BR7dGHa1
+https://ellie-app.com/965yy8M8Knja1
 
 ## Installation
 

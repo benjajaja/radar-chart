@@ -1,19 +1,31 @@
 module RadarChart exposing
-    ( Options, AxisStyle(..), LineStyle(..), DatumSeries, Maximum(..)
-    , view, defaultOptions
+    ( DatumSeries
+    , view, defaultOptions, simpleLabels
+    , Options, AxisStyle(..), LineStyle(..), Maximum(..), customLabels
+    , LabelMaker, Point, TextAlign
     )
 
 {-|
 
 
-# Customize a chart a little bit, or use defaults
+# Simple chart data
 
-@docs Options, AxisStyle, LineStyle, DatumSeries, Maximum
+@docs DatumSeries
 
 
 # Show a radar chart
 
-@docs view, defaultOptions
+@docs view, defaultOptions, simpleLabels
+
+
+# Customize chart a bit
+
+@docs Options, AxisStyle, LineStyle, Maximum, customLabels
+
+
+# Customize chart labels completely
+
+@docs LabelMaker, Point, TextAlign
 
 -}
 
@@ -21,9 +33,18 @@ import Svg exposing (Svg, circle, svg, text, text_)
 import Svg.Attributes exposing (dominantBaseline, fill, fillOpacity, fontSize, stroke, strokeLinecap, strokeLinejoin, strokeWidth, textAnchor, viewBox)
 
 
+{-| You can have multiple "series", or polygons, on one chart.
+The `data` list should be of same size as axis labels.
+-}
+type alias DatumSeries =
+    { color : String
+    , data : List Float
+    }
+
+
 {-| Render a radar chart with options, labels, and some values
 -}
-view : Options -> List String -> List DatumSeries -> Svg msg
+view : Options -> List (LabelMaker msg) -> List DatumSeries -> Svg msg
 view options labels series =
     let
         axisCount =
@@ -53,20 +74,44 @@ view options labels series =
                         )
                         series
                )
-            ++ List.indexedMap (axisLabel options axisCount) labels
+            ++ axisLabels options axisCount labels
 
 
-{-| You can have multiple "series" or polygons on one chart
+{-| Get a default options object.
 -}
-type alias DatumSeries =
-    { color : String
-    , data : List Float
+defaultOptions : Options
+defaultOptions =
+    { maximum = Infer
+    , margin = 0.333
+    , strokeWidth = 0.5
+    , axisColor = "darkgrey"
+    , axisStyle = Web 6
+    , lineStyle = Empty
     }
+
+
+{-| Default text labels, positioned conveniently
+-}
+simpleLabels : List String -> List (LabelMaker msg)
+simpleLabels labels =
+    List.indexedMap axisLabel labels
+
+
+{-| Custom labels: use a list of anything, and a function that maps the elements
+together with position/alignment SVG attributes to `Svg msg`.
+-}
+customLabels : List a -> (a -> List (Svg.Attribute msg) -> Svg msg) -> List (LabelMaker msg)
+customLabels list fn =
+    List.map
+        (\a ->
+            \point align ->
+                fn a <| labelAttributes point align
+        )
+        list
 
 
 {-| Chart options:
 
-  - `fontSize` See <https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/font-size>
   - `margin` Between 0 and 1, to leave some space for labels
   - `strokeWidth` For all lines, see <https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-width>
   - `axisColor` axis stroke color, any valid HTML color string (hex, color-name, rgba(...), etc.)
@@ -76,7 +121,6 @@ type alias DatumSeries =
 -}
 type alias Options =
     { maximum : Maximum
-    , fontSize : Float
     , margin : Float
     , strokeWidth : Float
     , axisColor : String
@@ -110,22 +154,22 @@ type Maximum
     | Infer
 
 
-{-| Get a default options object.
+{-| You can even completely make your own attributes and everything
 -}
-defaultOptions : Options
-defaultOptions =
-    { maximum = Infer
-    , fontSize = 3.0
-    , margin = 0.333
-    , strokeWidth = 0.5
-    , axisColor = "darkgrey"
-    , axisStyle = Web 6
-    , lineStyle = Empty
-    }
+type alias LabelMaker msg =
+    Point -> TextAlign -> Svg msg
 
 
+{-| Point in SVG, suitable for `x` and `y` attributes of text
+-}
 type alias Point =
     ( Float, Float )
+
+
+{-| Text align is simply suitable values for `dominant-baseline` and `text-anchor`, respectively.
+-}
+type alias TextAlign =
+    ( String, String )
 
 
 lines : Options -> Int -> String -> List Float -> Float -> List Point -> List (Svg msg)
@@ -218,23 +262,38 @@ webLine options count i segment =
         []
 
 
-axisLabel : Options -> Int -> Int -> String -> Svg msg
-axisLabel options count i label =
-    let
-        ( x, y ) =
-            pointOnCircle count i fullRadius fullRadius <| options.margin * 0.9
+axisLabels : Options -> Int -> List (LabelMaker msg) -> List (Svg msg)
+axisLabels options count fns =
+    List.indexedMap
+        (\i fn ->
+            let
+                point =
+                    pointOnCircle count i fullRadius fullRadius <| options.margin * 0.9
 
-        ( vertAnchor, horizAnchor ) =
-            anchors count i
-    in
+                anchors_ =
+                    anchors count i
+            in
+            fn point anchors_
+        )
+        fns
+
+
+axisLabel : Int -> String -> Point -> TextAlign -> Svg msg
+axisLabel _ label point align =
     Svg.text_
-        [ fontSize <| String.fromFloat options.fontSize
-        , Svg.Attributes.x <| String.fromFloat <| x
-        , Svg.Attributes.y <| String.fromFloat <| y
-        , textAnchor horizAnchor
-        , dominantBaseline vertAnchor
-        ]
-        [ Svg.text label ]
+        ((fontSize <| String.fromFloat 2.0)
+            :: labelAttributes point align
+        )
+        [ text label ]
+
+
+labelAttributes : Point -> TextAlign -> List (Svg.Attribute msg)
+labelAttributes ( x, y ) ( vert, horiz ) =
+    [ Svg.Attributes.x <| String.fromFloat <| x
+    , Svg.Attributes.y <| String.fromFloat <| y
+    , dominantBaseline vert
+    , textAnchor horiz
+    ]
 
 
 pointOnCircle : Int -> Int -> Float -> Float -> Float -> Point
