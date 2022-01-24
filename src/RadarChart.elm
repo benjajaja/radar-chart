@@ -1,5 +1,12 @@
 module RadarChart exposing (AxisStyle(..), DatumSeries, LineStyle(..), Options, defaultOptions, view)
 
+{-| A small library to display just one type of charts: radar charts, also known as web chart, spider chart, spider web chart, star chart, star plot, cobweb chart, irregular polygon, polar chart, or Kiviat diagram.
+
+# Definition
+@docs AxisStyle, DatumSeries, LineStyle, Options, defaultOptions, view
+-}
+
+
 import Svg exposing (Svg, circle, svg, text, text_)
 import Svg.Attributes exposing (dominantBaseline, fill, fillOpacity, fontSize, stroke, strokeLinecap, strokeLinejoin, strokeWidth, textAnchor, viewBox)
 
@@ -33,6 +40,7 @@ view options labels series =
             ++ List.indexedMap (axisLabel options axisCount) labels
 
 
+{-| Datum series -}
 type alias DatumSeries =
     { color : String
     , data : List Float
@@ -50,12 +58,13 @@ type alias Options =
     , lineStyle : LineStyle
     }
 
-
+{-| Axis style -}
 type AxisStyle
     = Minimal
     | Web Int
 
 
+{-| Line style -}
 type LineStyle
     = Empty
     | Filled Float
